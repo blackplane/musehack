@@ -1,0 +1,22 @@
+{
+  "name": "musehack",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"node --watch --env-file=.env server/index.js\" \"vite\"",
+    "server": "node --env-file=.env server/index.js",
+    "build": "vite build",
+    "start": "npm run build && NODE_ENV=production node --env-file=.env server/index.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "concurrently": "^10.0.7",
+    "vite": "^8.3.7"
+  }
+}
