@@ -190,17 +190,25 @@ async function buildHistory(match, milestone, score) {
   const start = milestone?.start_date ? Math.floor(Date.parse(milestone.start_date) / 1000) : null;
   const inPlay = score && score.state !== 'scheduled' && start && start < now;
   // During/after the match: minute candles from 30 min before first serve. Before: hourly over the last 3 days.
-  const interval = inPlay ? 1 : 60;
-  const from = inPlay ? start - 30 * 60 : now - 3 * 86400;
+  let interval = inPlay ? 1 : 60;
+  let from = inPlay ? start - 30 * 60 : now - 3 * 86400;
   const to = inPlay ? Math.min(now, start + 8 * 3600) : now;
 
-  const candles = await Promise.all(
-    match.players.map((p) =>
-      kalshi(`/series/${match.series}/markets/${p.ticker}/candlesticks?start_ts=${from}&end_ts=${to}&period_interval=${interval}`)
-        .then((r) => r.candlesticks || [])
-        .catch(() => []),
-    ),
-  );
+  const fetchCandles = () =>
+    Promise.all(
+      match.players.map((p) =>
+        kalshi(`/series/${match.series}/markets/${p.ticker}/candlesticks?start_ts=${from}&end_ts=${to}&period_interval=${interval}`)
+          .then((r) => r.candlesticks || [])
+          .catch(() => []),
+      ),
+    );
+  let candles = await fetchCandles();
+  // Freshly listed market: not enough hourly candles yet, so zoom in to minutes.
+  if (interval === 60 && Math.max(...candles.map((c) => c.length)) < 3) {
+    interval = 1;
+    from = now - 6 * 3600;
+    candles = await fetchCandles();
+  }
   const byTs = candles.map((list) => new Map(list.map((c) => [c.end_period_ts, c])));
   const allTs = [...new Set(candles.flat().map((c) => c.end_period_ts))].sort((a, b) => a - b);
 

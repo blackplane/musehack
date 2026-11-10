@@ -128,7 +128,7 @@ export function ProbChart({ points, playerName, interval, matchStart, color = '#
         {matchStart && matchStart > t0 && matchStart < t1 && (
           <g>
             <line x1={x(matchStart)} x2={x(matchStart)} y1={M.top} y2={y(0)} className="grid mid" />
-            <text x={x(matchStart) + 4} y={M.top + 10} className="axis">first serve</text>
+            <text x={x(matchStart) + 4} y={M.top + 10} className="axis">scheduled start</text>
           </g>
         )}
         <path d={area} fill="url(#probFill)" />
